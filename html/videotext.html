@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="http://jzaefferer.github.com/jquery-validation/jquery.validate.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="/css/videotext.css"></link>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+		<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
+		<script src="http://vjs.zencdn.net/c/video.js"></script>
+		<script>
+			$.ready = function() {
+
+			function gup( name )
+			{
+				var regexS = "[\\?&]"+name+"=([^&#]*)";
+				var regex = new RegExp( regexS );
+				var tmpURL = window.location.href;
+				var results = regex.exec( tmpURL );
+				if( results == null )
+					return "";
+				else
+					return results[1];
+			}
+			
+			$("#my_video_1").bind("ended", function() {
+				if (gup('assignmentId') !== "ASSIGNMENT_ID_NOT_AVAILABLE"){
+					$("#submit_btn").prop("disabled",false);
+				}
+			});
+
+			var myPlayer = _V_("my_video_1");
+			myPlayer.volume(0);
+
+			if (gup('assignmentId') === "ASSIGNMENT_ID_NOT_AVAILABLE") 
+			{
+				// If we're previewing, disable the button and give it a helpful message
+				$('#submit_btn').text("You must ACCEPT the HIT before you can submit the results.");
+			} else {
+					var form = document.getElementById('mturk_form');
+					if (document.referrer && ( document.referrer.indexOf('workersandbox') != -1) ) {
+							form.action = "http://workersandbox.mturk.com/mturk/externalSubmit";
+					}
+			}
+
+			$('#assignmentId').val(gup('assignmentId'));
+			jQuery.extend(jQuery.validator.messages, {
+    		required: "Please select one of the choice",
+			});
+
+			$(function() {
+    		$( "#dialog" ).dialog({
+					autoOpen: false,
+					width: 1100,
+      		modal: true
+				});
+
+				$("#example_link").click(function(){
+					$( "#dialog" ).dialog( "open" );
+				});
+
+				$("#mturk_form").validate({
+					errorPlacement: function (error, element) {
+						element.parents("div:first").after(error);
+					}
+				 });
+  		});
+			};
+		</script>
+	</head>
+  <body>
+			<div class="container-fluid">
+				<div>
+					<h4>Directions:</h4>
+					<ol class="direction_list">
+						<li>Watch the 15-second video <strong>entirely</strong>.</li>
+						<li>Indicate whether the video contains text <strong> that is visible and readable</strong>.</li>
+						<li>Submit.</li>
+						<li>Get paid.</li>
+					</ol>
+					<div>
+						<a id="example_link" href="javascript:void(0)">Examples of visible and readable text in videos</a></h4>
+					</div>
+					<br/>
+				</div>
+				<div class="row">
+					<div class="span9">
+						<video id="my_video_1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="480" data-setup="{}">
+ 							<source src="https://s3.amazonaws.com/videotext/live/{{video_id}}" type='video/mp4'>
+						</video>
+					</div>
+					<div class="span5">
+						<div>
+							<h3><strong>Does the video contain text?</strong></h3>
+						</div>
+						<form id="mturk_form" method="POST" action="http://www.mturk.com/mturk/externalSubmit">
+								<input type="hidden" id="assignmentId" name="assignmentId" value="">
+								<div class="control-group">
+										<label class="radio" for="radio">
+											<div>
+												<input type="radio" name="optionsRadios" id="optionsYes" value="Yes" class="required">
+														Yes, the video <strong>DOES</strong> contain text. </br>
+
+												<input type="radio" name="optionsRadios" id="optionsNo" value="No">
+														No, the video does <strong>NOT</strong> contain text. </br>
+											</div>
+										</label>
+
+								</div>
+
+								<input type="hidden" id="video_id" name="video_id" value="{{ video_id }}">
+								<div>
+									<button id="submit_btn" class="btn btn-primary" disabled>Submit</button>
+									<div class="submit_message">
+										(Submit button will be enabled when the video finished)
+									</div>
+								</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div id="dialog" title="Examples of frames in videos that contain text">
+				<div class="example_images_container">
+				<img src="images/example1.jpg" class="img-rounded" >
+				<img src="images/example2.jpg" class="img-rounded">
+				</div>
+				<div class="example_images_container">
+				<img src="images/example3.jpg" class="img-rounded">
+				<img src="images/example4.jpg" class="img-rounded">
+				</div>
+			</div>
+  </body>
+</html>

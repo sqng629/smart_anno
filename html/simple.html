@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="http://jzaefferer.github.com/jquery-validation/jquery.validate.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="/css/videotext.css"></link>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+		<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
+		<script src="http://vjs.zencdn.net/c/video.js"></script>
+	</head>
+  <body>
+			<div class="container-fluid">
+				<div>
+					<h4>Directions:</h4>
+					<ol class="direction_list">
+						<li>Type in the text that in the images</li>
+					</ol>
+					<br/>
+				</div>
+				<div class="row">
+					<div class="span9">
+						<form id="mturk_form" method="POST" action="http://www.mturk.com/mturk/externalSubmit">
+								<input type="hidden" id="assignmentId" name="assignmentId" value="">
+								<div class="control-group">
+										<label class="radio" for="radio">
+											<div>
+											<table class='table table-striped'>
+												<tr><th>Pictures</th><th>Labels</th></tr>
+												<tr><td><img src='images/155.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+												<tr><td><img src='images/131.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+												<tr><td><img src='images/157.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+												<tr><td><img src='images/140.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+												<tr><td><img src='images/113.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+												<tr><td><img src='images/38.jpg' width="500"></img></td><td><textarea rows='10'></textarea></td></tr>
+											</table>
+											</div>
+										</label>
+
+								</div>
+
+								<input type="hidden" id="video_id" name="video_id" value="{{ video_id }}">
+								<div>
+									<button id="submit_btn" class="btn btn-primary" disabled>Submit</button>
+									<div class="submit_message">
+										(Submit button will be enabled when the video finished)
+									</div>
+								</div>
+						</form>
+					</div>
+				</div>
+			</div>
+  </body>
+</html>

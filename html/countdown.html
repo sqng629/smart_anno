@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<title>Countdown until Date</title>
+<style type="text/css">
+@import "css/jquery.countdown.css";
+
+#defaultCountdown {
+	width: auto; height: 100px;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #ffd2b7;
+}
+#content {
+	height: 100%;
+	position: absolute;
+	background-color: #ffd2b7;
+	margin: auto;
+	width: 100%;
+	top: 22%;
+}
+
+table {
+	margin: auto;
+	padding: 50px;
+}
+
+td {
+	padding: 20px;
+}
+</style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.countdown.js"></script>
+<script type="text/javascript">
+$(function () {
+	var austDay = new Date(2012,10,30,20,0,0);
+	$('#defaultCountdown').countdown({until: austDay});
+	$('#year').text(austDay.getFullYear());
+});
+</script>
+</head>
+<body>
+<div id="content">
+<div id="defaultCountdown"></div>
+<div>
+	<table>
+		<tr>
+			<td><img src="/images/gumbo.jpg" width="304" height="228"></td>
+		  <td><img src="/images/crabhut.jpg" width="304" height="228"></td>
+			<td><img src="/images/calamari.jpg" width="304" height="228"></td>
+		</tr>
+	</table>
+</div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="js/jquery-1.6.3.min.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="js/jquery.scrollTo-1.4.3.1-min.js"></script>
+
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+		<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link type="text/css" rel="stylesheet" href="/css/videotext.css"></link>
+		<script src="js/main.js"></script>
+		<script>
+		$.ready = function (){
+
+			// Insert the first question into the first container
+			text_clone = $(".text_question_container").clone();
+			same_clone = $(".same_question_container").clone();
+			$("#row0").find(".column2").append(text_clone.clone());
+
+			// Handlers
+			text_no_handler = function(target){
+				current_row = $(target).parent().parent().parent();
+				container = current_row.next().find(".column2");
+				container.empty();
+				clone = text_clone.clone();
+				clone.attr('name','text'+current_row.attr('frame'));
+				container.append(clone);
+				$.scrollTo(current_row,800);
+				// insert text template of next question into the next div
+			};
+
+			text_yes_handler = function(target){
+				current_row = $(target).parent().parent().parent();
+				container = current_row.next().find(".column2");
+				container.empty();
+				clone = same_clone.clone();
+				clone.attr('name','same'+current_row.attr('frame'));
+				container.append(clone);
+				$.scrollTo(current_row,800);
+			};
+
+			same_yes_handler = function(target){
+				current_row = $(target).parent().parent().parent();
+				clone = same_clone.clone();
+				clone.attr('name','same'+current_row.attr('frame'));
+				current_row.next().find(".column2").append(clone);
+				$.scrollTo(current_row,800);
+			};
+			
+			same_no_handler = function(target){
+				current_row = $(target).parent().parent().parent();
+				frame_number = parseInt(current_row.attr("frame"));
+
+				// clear the container first
+				$( "#dialog" ).find(".image_container").empty();
+				
+				// populate the gui
+				for(var i=0; i<10; i++){
+					current_frame = frame_number-10+i;
+					$( "#dialog" ).find(".image_container").append("<a href='images/0/" + current_frame + ".jpg' class='preview' frame='" + current_frame + "'><img class='thumbnail' src='images/0/" + current_frame +".jpg'></a>");
+				}
+
+				imagePreview();
+
+				// pop up the gui
+				$( "#dialog" ).dialog({
+					width: 2000,
+      		modal: true
+    		});
+
+			};
+
+			$("input.textRadios").live('change',function(){
+				if ($(this).val() === 'no'){
+					text_no_handler(this);
+				} else {
+					text_yes_handler(this);
+				}
+			});
+
+			$("input.sameRadios").live('change',function(){
+				if ($(this).val() === 'no'){
+					same_no_handler(this);
+				} else {
+					same_yes_handler(this);
+				}
+			});
+
+			$(".preview").live("click",function(event){
+				frame_number = parseInt($(this).attr("frame"));
+				row_index = Math.ceil(frame_number/10);
+				//TODO: need to fix this, infer from the attribute of the element
+				// Or bind the function when the target is avaliable
+				$( "#row" + row_index*10).find(".column2").append(text_clone.clone());
+				$( "#dialog" ).dialog("close");
+				event.preventDefault();
+				return false;
+			});
+		};
+		</script>
+	</head>
+  <body>
+			<div class="container-fluid">
+				<div class="row">
+					<div class="span14">
+					<div id="dialog">
+					<h1>Choose the transition frame</h1>
+					<div class="image_container">
+					</div>
+					</div>
+				  <div class="text_question_container">
+							<div>Containing readable text?</div>
+							<input type="radio" id="optionsYes" class="textRadios" value="yes"> This frame <strong>DOES</strong> contains readable text <br/>
+  						<input type="radio" id="optionsRadios2" class="textRadios" value="no"> This frame <strong>DOES NOT</strong> contain readable text
+					</div>
+
+					<div class="same_question_container">
+							<div>Containing the same text content as the previous frame?</div>
+							<input type="radio" class="sameRadios" id="optionsYes" value="yes"> This frame contains <strong>SAME</strong> text content as the previous frame <br/>
+  						<input type="radio" class="sameRadios" id="optionsRadios2" value="no"> This frame contains <strong>DIFFERENT</strong> text content as the previous frame <br/>
+					</div>
+
+					<table class="table">
+						<thead>
+						</thead>
+						<tbody>
+						{% for frame in frame_list %}
+						<tr id="row{{frame}}" frame="{{frame}}">
+							<td>
+								<img src="images/0/{{frame}}.jpg">
+
+							</td>
+							<td class="column2">
+							</td>
+						</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					</div>
+					<div>
+						<button id="submit_btn" class="btn btn-primary" disabled>Submit</button>
+						<div class="submit_message">
+							(Submit button will be enabled when the video finished)
+						</div>
+					</div>
+
+				</div>
+			</div>
+  </body>
+</html>

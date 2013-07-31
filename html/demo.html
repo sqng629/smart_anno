@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" /> 
+    <title>Bug OCR - Demo</title>
+    <link rel="stylesheet" href="css/main.css" type="text/css" />
+    <link type="text/css" href="css/smoothness/jquery-ui-1.8.21.custom.css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.21.custom.min.js"></script>
+    <script type="text/javascript">
+    
+    function Position(xtl, ytl, xbr, ybr, occluded, outside)
+    {
+      this.xtl = xtl;
+      this.ytl = ytl;
+      this.xbr = xbr;
+      this.ybr = ybr;
+      this.occluded = occluded ? occluded : false;
+      this.outside = outside ? outside : false;
+      this.width = xbr - xtl;
+      this.height = ybr - ytl;
+  
+      if (this.xbr <= this.xtl)
+      {this.xbr = this.xtl + 1;}
+  
+      if (this.ybr <= this.ytl)
+      {this.ybr = this.ytl + 1;}
+    }
+    
+    function BoxDrawer(container)
+    {
+	var me = this;
+	this.onstartdraw = [];
+	this.onstopdraw = []
+	this.enabled = false;
+	this.drawing = false;
+	this.startx = 0;
+	this.starty = 0;
+	this.container = container;
+	this.handle = null;
+	this.color = null;
+	this.vcrosshair = null;
+	this.hcrosshair = null;
+	this.counter = 0;
+    
+	this.displayImage = function()
+	{
+	    this.container.css({
+	    });
+	};
+    
+	/*
+	 * Enables the drawer.
+	 */
+	this.enable = function()
+	{
+	    this.enabled = true;
+    
+	    this.hcrosshair = $('<div class="crosshair"></div>').appendTo(this.container);
+	    this.vcrosshair = $('<div class="crosshair"></div>').appendTo(this.container);
+    
+	    this.vcrosshair.css({
+		width: '2px',
+		height: '100%',
+		position: 'relative',
+		top: '0px',
+		left: '0px',
+		backgroundColor: this.color,
+		zIndex: 1
+	    }).hide();
+    
+	    this.hcrosshair.css({
+		height: '2px',
+		width: '100%',
+		position: 'relative',
+		top: '0px',
+		left: '0px',
+		backgroundColor: this.color,
+		zIndex: 1
+	    }).hide();
+	}
+    
+	/*
+	 * Disables the drawer. No boxes can be drawn and interface cues are
+	 * disabled.
+	 */
+	this.disable = function()
+	{
+	    this.enabled = false;
+	    this.container.css({'cursor': 'default'});
+		      this.vcrosshair.remove(); this.hcrosshair.remove();
+	}
+    
+	/*
+	 * Method called when we receive a click on the target area.
+	 */
+	this.click = function(xc, yc)
+	{
+	    if (this.enabled)
+	    {
+		if (!this.drawing)
+		{this.startdrawing(xc, yc);}
+		else
+		{this.finishdrawing(xc, yc);}
+	    }
+	}
+    
+	/*
+	 * Updates the current visualization of the current box.
+	 */
+	this.updatedrawing = function(xc, yc)
+	{
+	    if (this.drawing)
+	    {
+		var pos = this.calculateposition(xc, yc);
+		var offset = this.container.offset();
+		this.handle.css({
+		    "top": pos.ytl + offset.top + "px",
+		    "left": pos.xtl + offset.left + "px",
+		    "width": (pos.width - 3) + "px",
+		    "height": (pos.height - 3)+ "px",
+		    "border-color": this.color
+		});
+	    }
+	}
+    
+	/*
+	 * Updates the cross hairs.
+	 */
+	this.updatecrosshairs = function(visible, xc, yc)
+	{
+	    if (this.enabled)
+	    {
+		if (visible && !this.drawing)
+		{
+		    this.vcrosshair.show().css('left', xc + 'px');
+		    this.hcrosshair.show().css('top', yc + 'px');
+		}
+		else
+		{
+		    this.vcrosshair.hide();
+		    this.hcrosshair.hide();
+		}
+	    }
+	}
+    
+	this.calculateposition = function(xc, yc)
+	{
+	    var xtl = Math.min(xc, this.startx); var ytl = Math.min(yc, this.starty);
+	    var xbr = Math.max(xc, this.startx); var ybr = Math.max(yc, this.starty);
+	    return new Position(xtl, ytl, xbr, ybr)
+	}
+    
+	this.startdrawing = function(xc, yc)
+	{
+	    if (!this.drawing)
+	    {
+		console.log("Starting new drawing");
+
+		this.startx = xc; this.starty = yc;
+		this.drawing = true;
+    
+		this.handle = $('<div class="boundingbox"><div>');
+		this.updatedrawing(xc, yc);
+		this.container.append(this.handle);
+    
+		for (var i in this.onstartdraw)
+		{
+		    this.onstartdraw[i]();
+		}
+	    }
+	}
+    
+	/*
+	 * Completes drawing the box. This will remove the visualization, so you will 
+	 * have to redraw it.
+	 */
+	this.finishdrawing = function(xc, yc)
+	{
+	    if (this.drawing)
+	    {
+		console.log("Finishing drawing");
+    
+		var position = this.calculateposition(xc, yc);
+    
+		// call callbacks
+		for (var i in this.onstopdraw)
+		{
+		    this.onstopdraw[i](position);
+		}
+    
+		this.drawing = false;
+		box = this.handle.clone();
+		box.resizable({autoHide:true});
+		box.draggable();
+		box.selectable();
+		this.handle.remove();
+		
+		this.container.append(box);		
+				    
+		this.startx = 0;
+		this.starty = 0;
+		this.disable();
+    
+		// Add a new frame to accordion
+		this.counter++;
+    
+		// Get the template frame
+		$template = $("#accordion_template").clone();
+    
+		$template.find(".header").html("Annotation " + this.counter);
+		$template.find(".radioset input").attr("name","radio" + this.counter);
+    
+		$('#accordion').append($template.html());
+		$('#accordion').accordion("destroy").accordion({
+		  active: this.counter-1,
+		  collapsible: true,
+		  autoHeight: false,
+		  change: function(event, ui) { alert("change")}
+		});
+		    
+		$("#button_new_annotation").button("option","disabled",false);
+	    }
+	}
+	
+	this.canceldrawing = function()
+	{
+	    if (this.drawing)
+	    {
+		console.log("Cancelling drawing");
+		this.drawing = false;
+		this.handle.remove();
+		this.startx = 0;
+		this.starty = 0;
+	    }
+	}
+    
+	var respondtoclick = function(e) {
+	    var offset = container.offset();
+	    me.click(e.pageX - offset.left, e.pageY - offset.top);
+	};
+    
+	var ignoremouseup = false;
+	container.mousedown(function(e) {
+	    ignoremouseup = true;
+	    window.setTimeout(function() { ignoremouseup = false; }, 500);
+	    respondtoclick(e);
+	});
+    
+	container.mouseup(function(e) {
+	    if (!ignoremouseup)
+	    {
+		respondtoclick(e);
+	    }
+	});
+    
+	container.click(function(e) {
+	    e.stopPropagation();
+	});
+    
+	container.mousemove(function(e) {
+	    var offset = container.offset();
+	    var xc = e.pageX - offset.left;
+	    var yc = e.pageY - offset.top;
+    
+	    me.updatedrawing(xc, yc);
+	    me.updatecrosshairs(true, xc, yc);
+	});
+    
+	$("body").click(function(e) {
+	    me.canceldrawing();
+	});
+    }
+
+	jQuery(function($){
+		// button
+		$( "#button_new_annotation" ).button({
+            		icons: {
+                		primary: "ui-icon-plus"
+            		}
+        	});
+
+		target = $('#target');
+		drawer = new BoxDrawer(target);
+		drawer.displayImage();
+
+		drawer.color = '#FF00FF';
+		$("#button_new_annotation").click(function(){
+			$(this).button("option", "disabled", "true");
+			drawer.enable();
+		});
+		$("#accordion").accordion({
+			collapsible: true,
+			autoHeight: false,
+			change: function(event, ui) { alert("change")}
+		});
+    	});
+
+    </script>
+  </head>
+
+  <body>
+    <div id="wrapper">
+    	<div id="header">
+    		Instructions go here.
+    	</div>
+    	<div id="content">
+    		<div id="target" >
+		  <img class="target_image" src="images/focused1.jpg"/>
+		</div>
+    	</div>
+    	<div id="sidebar">
+    		<button id="button_new_annotation">New annotations</button>
+		<div id="accordion">
+		</div>
+    	</div>
+	<div id="footer"></div>
+    </div>
+	
+    <div id="accordion_template">
+	    <h3><a class="header" href="#"></a></h3>
+	    <div>
+		<div class="radioset">
+			<input type="radio" name="radio" value="handwriting"/> Handwriting
+			<input type="radio" name="radvalue="printed"/> Printed
+		</div>
+		<div>
+		Text: <textarea></textarea> 
+		</div>
+	    </div>
+    </div>
+  </body>
+</html>
+
